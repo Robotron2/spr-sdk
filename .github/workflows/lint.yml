@@ -1,0 +1,59 @@
+name: Lint
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: lint-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_ENV: test
+
+jobs:
+  lint:
+    name: Code quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Check formatting with Prettier
+        run: |
+          if node -e "process.exit(require('./package.json').scripts.format ? 0 : 1)"; then
+            npm run format -- --check
+          else
+            echo "No format script found; skipping Prettier format check."
+          fi
+
+      - name: Run type check
+        run: |
+          if node -e "process.exit(require('./package.json').scripts.typecheck ? 0 : 1)"; then
+            npm run typecheck
+          else
+            echo "No typecheck script found; skipping TypeScript type check."
+          fi

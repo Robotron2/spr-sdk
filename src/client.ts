@@ -8,7 +8,6 @@ import {
   TransactionResult,
   AccountInfo,
   LiquidityInfo,
-  Signer,
 } from './types';
 import { ApiError, InvalidParamsError, RouteNotFoundError } from './errors';
 

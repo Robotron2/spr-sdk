@@ -1,6 +1,17 @@
 import { Signer } from '../types';
 import { WalletNotAvailableError } from '../errors';
 
+interface FreighterApi {
+  getPublicKey(): Promise<string>;
+  signTransaction(tx: string, options?: { network?: string }): Promise<string>;
+}
+
+declare global {
+  interface Window {
+    freighter?: FreighterApi;
+  }
+}
+
 /**
  * Freighter wallet signer implementation
  */
@@ -9,7 +20,7 @@ export class FreighterSigner implements Signer {
    * Check if Freighter wallet is available
    */
   async isAvailable(): Promise<boolean> {
-    return typeof (window as any).freighter !== 'undefined';
+    return typeof window.freighter !== 'undefined';
   }
 
   /**
@@ -21,7 +32,7 @@ export class FreighterSigner implements Signer {
     }
 
     try {
-      const publicKey = await (window as any).freighter.getPublicKey();
+      const publicKey = await window.freighter!.getPublicKey();
       return publicKey;
     } catch (error) {
       throw new WalletNotAvailableError(
@@ -39,7 +50,7 @@ export class FreighterSigner implements Signer {
     }
 
     try {
-      const signedTx = await (window as any).freighter.signTransaction(tx, {
+      const signedTx = await window.freighter!.signTransaction(tx, {
         network: 'testnet',
       });
       return signedTx;
